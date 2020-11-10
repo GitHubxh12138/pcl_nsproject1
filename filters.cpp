@@ -76,3 +76,82 @@ int NextDirectionFilter(pcl::PointCloud<pcl::PointXYZ>& cloud_in, int NextPointN
 	cloud_in.points.resize(count);
 	return 0;
 }
+
+
+int LineFittingFilter(pcl::PointCloud<pcl::PointXYZ>& cloud_in, int NextPointNumber, float Fitting_Max_Distance,float Filter_Max_distance)
+{
+	pcl::PointCloud<pcl::PointXYZI> cloud_transfer;//中转点云
+	cloud_transfer.width = cloud_in.width;
+	cloud_transfer.height = cloud_in.height;
+	cloud_transfer.is_dense = cloud_in.is_dense;
+	cloud_transfer.points.resize(cloud_transfer.width * cloud_transfer.height);
+
+	
+	pcl::PointCloud<pcl::PointXYZ> cloud_linefitting;//拟合直线点云
+	cloud_linefitting.width = NextPointNumber;
+	cloud_linefitting.height = 1;
+	cloud_linefitting.is_dense = cloud_in.is_dense;
+	cloud_linefitting.points.resize(cloud_linefitting.width * cloud_linefitting.height);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_linefitting_ptr(new pcl::PointCloud<pcl::PointXYZ>);//指针
+	cloud_linefitting_ptr = cloud_linefitting.makeShared();
+
+	for (int i = 0; i < cloud_in.width * cloud_transfer.height; i++)
+	{
+		//将点云值赋给中转点云
+		cloud_transfer.points[i].x = cloud_in.points[i].x;
+		cloud_transfer.points[i].y = cloud_in.points[i].y;
+		cloud_transfer.points[i].z = cloud_in.points[i].z;
+
+		if (i < cloud_in.width * cloud_transfer.height - NextPointNumber)
+		{
+			for (int j = 0; j < NextPointNumber; j++)
+			{
+				cloud_linefitting_ptr->points[j].x = cloud_in.points[i + 1 + j].x;
+				cloud_linefitting_ptr->points[j].y = cloud_in.points[i + 1 + j].y;
+				cloud_linefitting_ptr->points[j].z = cloud_in.points[i + 1 + j].z;
+			}
+			cloud_transfer.points[i].intensity = LineFittingReDistance(cloud_linefitting_ptr, cloud_in.points[i], Fitting_Max_Distance);
+			
+		}
+		else
+		{
+			cloud_transfer.points[i].intensity = 100;
+		}
+
+		if (i >= NextPointNumber)
+		{
+			for (int j = 0; j < NextPointNumber; j++)
+			{
+				cloud_linefitting_ptr->points[j].y = cloud_in.points[i-NextPointNumber+j].y;
+				cloud_linefitting_ptr->points[j].z = cloud_in.points[i-NextPointNumber+j].z;
+				cloud_linefitting_ptr->points[j].x = cloud_in.points[i-NextPointNumber+j].x;
+			}
+			float fcompare = LineFittingReDistance(cloud_linefitting_ptr, cloud_in.points[i], Fitting_Max_Distance);
+			if (fcompare < cloud_transfer.points[i].intensity)
+			{
+				cloud_transfer.points[i].intensity = fcompare;
+			}
+			
+		}
+		
+		
+
+	}
+	int count = 0;
+	for (int i = 0; i < cloud_in.width * cloud_transfer.height; i++)
+	{
+		
+
+		
+		if (cloud_transfer.points[i].intensity<Filter_Max_distance)
+		{
+			cloud_in.points[count].x = cloud_transfer.points[i].x;
+			cloud_in.points[count].y = cloud_transfer.points[i].y;
+			cloud_in.points[count].z = cloud_transfer.points[i].z;
+			count++;
+		}
+	}
+	cloud_in.width = count;
+	cloud_in.points.resize(count);
+	return 0;
+}

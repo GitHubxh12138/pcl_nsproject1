@@ -47,3 +47,36 @@ void LabelConnectedComponent(pcl::PointCloud<pcl::PointXYZ>& cloud_in, float max
 	cloud_in.width = Count;
 	cloud_in.points.resize(Count);
 }
+
+
+int Connnected_Select(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud_base, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud_data, float distance)
+{
+	//设置kdtree
+	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+	kdtree.setInputCloud(cloud_base);
+	int k = 1;
+	std::vector<int>pointIdxNKNSearch(k);
+	std::vector<float>pointNKNSquaredDistance(k);
+
+
+	
+	int count = 0;
+	double xydistance;
+	//提取近点
+	for (int i = 0; i < cloud_data->width; i++)
+	{
+		kdtree.nearestKSearch(cloud_data->points[i], k, pointIdxNKNSearch, pointNKNSquaredDistance);
+		xydistance = std::sqrt(pow(cloud_data->points[i].x - cloud_base->points[pointIdxNKNSearch[0]].x ,2) + pow(cloud_data->points[i].y - cloud_base->points[pointIdxNKNSearch[0]].y, 2));
+
+		if (xydistance < distance )
+		{
+			cloud_data->points[count].x = cloud_data->points[i].x;
+			cloud_data->points[count].y = cloud_data->points[i].y;
+			cloud_data->points[count].z = cloud_data->points[i].z;
+			count++;
+		}
+	}
+	cloud_data->width = count;
+	cloud_data->points.resize(count);
+	return 0;
+}

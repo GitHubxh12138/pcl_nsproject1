@@ -15,7 +15,7 @@ int getNumberOfEdges(const char* file_name)
 
 	edgeNum = count;//因为最后一行没有换行符\n，所以需要在count补加1,由于数据多一行，不加
 	fclose(fp);
-	std::cout << " the edge number is " << edgeNum << std::endl;
+	//std::cout << " the edge number is " << edgeNum << std::endl;
 	return edgeNum;
 
 }
@@ -98,6 +98,8 @@ void ReadTxtFile(const char* file_name, pcl::PointCloud<pcl::PointXYZ>& cloud, i
 //写txt文件
 int WriteTxtFile(const char* file_name, pcl::PointCloud<pcl::PointXYZ>& cloud, pcl::PointXYZ cloud_in_shift)
 {
+	if (cloud.width)
+	{
 	std::ofstream file_out;
 	file_out.open(file_name);
 	//file_out.precision(10);
@@ -105,5 +107,7 @@ int WriteTxtFile(const char* file_name, pcl::PointCloud<pcl::PointXYZ>& cloud, p
 	{
 		file_out <<std::fixed<<std::setprecision(3)<< ((double)cloud.points[i].x+ (double)cloud_in_shift.x) << "," << (double)cloud.points[i].y + (double)cloud_in_shift.y << "," << (double)cloud.points[i].z + (double)cloud_in_shift.z << std::endl;
 	}
+	}
+	
 	return 0;
 }
