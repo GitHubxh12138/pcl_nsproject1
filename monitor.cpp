@@ -1,7 +1,10 @@
 #include "monitor.h"
 
 
-
+ /*直线拟合监测
+ * 接收输入点云cloud_base做基础点云，待监测点云cloud_monitor，监测距离阈值Max_distance,用于直线拟合的点的个数FittingPointNumber
+ * 遍历待监测点云，计算其与基础点云最近n个点的拟合直线的垂直距离，大于阈值则标记为高程变化的点
+ */
 int Monitoring_Fittingline(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud_base, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud_monitor, float Max_distance,int FittingPointNumber)
 {
 	//设置kdtree
